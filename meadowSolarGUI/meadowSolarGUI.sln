@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31424.327
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "meadowWiFiGUI", "meadowWiFiGUI\meadowWiFiGUI.csproj", "{9EC65809-DE3D-43F8-9CF6-468DCA8B886B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "meadowSolarGUI", "meadowSolarGUI\meadowSolarGUI.csproj", "{D679BEB6-CA35-4F94-9971-93CFEC84E500}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9EC65809-DE3D-43F8-9CF6-468DCA8B886B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9EC65809-DE3D-43F8-9CF6-468DCA8B886B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9EC65809-DE3D-43F8-9CF6-468DCA8B886B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9EC65809-DE3D-43F8-9CF6-468DCA8B886B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D679BEB6-CA35-4F94-9971-93CFEC84E500}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D679BEB6-CA35-4F94-9971-93CFEC84E500}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D679BEB6-CA35-4F94-9971-93CFEC84E500}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D679BEB6-CA35-4F94-9971-93CFEC84E500}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {7296A409-C759-44B1-BC33-E6CE682B727D}
+		SolutionGuid = {66FE2B8F-9E37-46CC-9FFE-9AD7B15A0890}
 	EndGlobalSection
 EndGlobal
