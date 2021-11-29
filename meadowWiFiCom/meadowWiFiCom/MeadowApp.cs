@@ -1,6 +1,6 @@
 ﻿/*
  * 
- * Goal; get TCP protocol working over WiFi and receiving in a WPF application. 
+ * Goal; get UDP protocol working over WiFi and receiving in a WPF application. 
  * Debug using ST7735 Display. 
  * 
  */
@@ -30,6 +30,9 @@ namespace meadowWiFiCom
         //WiFi Information
         string SSID = "";
         string PASSWORD = "";
+        //UDP Server Information
+        const int PORT_NO = 5000;
+        const string SERVER_IP = "127.0.0.1";
 
         public MeadowApp()
         {
@@ -72,7 +75,8 @@ namespace meadowWiFiCom
 
         async Task InitializeWiFi()
         {
-            graphics.DrawText(0, 0, "Connecting to WiFi...");
+            graphics.Clear(true);
+            graphics.DrawText(0, 5, "Connecting to WiFi...");
             
             Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;
 
@@ -86,34 +90,8 @@ namespace meadowWiFiCom
 
         private void WiFiAdapter_ConnectionCompleted(object sender, EventArgs e)
         {
-            graphics.DrawText(0, 0, "Connected.");
+            graphics.Clear(true);
+            graphics.DrawText(0, 5, "Connected.");
         }
-
-        private void TCPclient(string message)
-        {
-        https://stackoverflow.com/questions/10182751/server-client-send-receive-simple-text
-            const int PORT_NO = 5000;
-            const string SERVER_IP = "127.0.0.1";
-            static void Main(string[] args)
-            {
-                //---data to send to the server---
-                string textToSend = DateTime.Now.ToString();
-
-                //---create a TCPClient object at the IP and port no.---
-                TcpClient client = new TcpClient(SERVER_IP, PORT_NO);
-                NetworkStream nwStream = client.GetStream();
-                byte[] bytesToSend = ASCIIEncoding.ASCII.GetBytes(textToSend);
-
-                //---send the text---
-                Console.WriteLine("Sending : " + textToSend);
-                nwStream.Write(bytesToSend, 0, bytesToSend.Length);
-
-                //---read back the text---
-                byte[] bytesToRead = new byte[client.ReceiveBufferSize];
-                int bytesRead = nwStream.Read(bytesToRead, 0, client.ReceiveBufferSize);
-                Console.WriteLine("Received : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead));
-                Console.ReadLine();
-                client.Close();
-            }
     }
 }
