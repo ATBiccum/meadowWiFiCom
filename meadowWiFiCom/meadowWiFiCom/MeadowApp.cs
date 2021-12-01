@@ -28,17 +28,17 @@ namespace meadowWiFiCom
         GraphicsLibrary graphics;
 
         //WiFi Information
-        string SSID = "";
-        string PASSWORD = "";
+        string SSID = "Bakery204";
+        string PASSWORD = "Electronics@204CamosunCollege";
         //UDP Server Information
-        const int PORT_NO = 5000;
-        const string SERVER_IP = "127.0.0.1";
+        const int PORT = 5000;
+        const string SERVER = "127.0.0.1";
 
         public MeadowApp()
         {
             Initialize();
         }
-        void Initialize()
+        public void Initialize()
         {
             var led = new RgbLed(Device,
                                 Device.Pins.OnboardLedRed,
@@ -47,12 +47,12 @@ namespace meadowWiFiCom
             led.SetColor(RgbLed.Colors.Red);            
             
             InitializeDisplay();
-            InitializeWiFi().Wait();
+            //InitializeWiFi().Wait();
 
             led.SetColor(RgbLed.Colors.Green);
         }
 
-        void InitializeDisplay()
+        public void InitializeDisplay()
         {
             var config = new SpiClockConfiguration(6000, SpiClockConfiguration.Mode.Mode3);
             st7735 = new St7735 
@@ -67,31 +67,32 @@ namespace meadowWiFiCom
                 resetPin: Device.Pins.D00,
                 width: 128,
                 height: 160,
-                St7735.DisplayType.ST7735R_BlackTab
+                St7735.DisplayType.ST7735R
             );
             graphics = new GraphicsLibrary(st7735);
             graphics.Clear(true);
+            graphics.DrawText(0, 0, "Welcome.");
         }
 
-        async Task InitializeWiFi()
-        {
-            graphics.Clear(true);
-            graphics.DrawText(0, 5, "Connecting to WiFi...");
+        //async Task InitializeWiFi()
+        //{
+        //    graphics.Clear(true);
+        //    graphics.DrawText(0, 5, "Connecting to WiFi...");
             
-            Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;
+        //    Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;
 
-            var connectionResult = await Device.WiFiAdapter.Connect(SSID, PASSWORD);
+        //    var connectionResult = await Device.WiFiAdapter.Connect(SSID, PASSWORD);
 
-            if (connectionResult.ConnectionStatus != ConnectionStatus.Success)
-            {
-                throw new Exception($"Cannot connect to network: {connectionResult.ConnectionStatus}");
-            }
-        }
+        //    if (connectionResult.ConnectionStatus != ConnectionStatus.Success)
+        //    {
+        //        throw new Exception($"Cannot connect to network: {connectionResult.ConnectionStatus}");
+        //    }
+        //}
 
-        private void WiFiAdapter_ConnectionCompleted(object sender, EventArgs e)
-        {
-            graphics.Clear(true);
-            graphics.DrawText(0, 5, "Connected.");
-        }
+        //private void WiFiAdapter_ConnectionCompleted(object sender, EventArgs e)
+        //{
+        //    graphics.Clear(true);
+        //    graphics.DrawText(0, 5, "Connected.");
+        //}
     }
 }
