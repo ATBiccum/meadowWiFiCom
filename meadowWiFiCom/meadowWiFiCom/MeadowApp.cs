@@ -35,18 +35,15 @@ namespace meadowWiFiCom
         St7735 st7735;
         GraphicsLibrary graphics;
 
-        RgbLed led = new RgbLed(Device,
-                    Device.Pins.OnboardLedRed,
-                    Device.Pins.OnboardLedGreen,
-                    Device.Pins.OnboardLedBlue);
 
-        //WiFi Information
-        private static string SSID = "";
-        private static string PASSWORD = "";
 
-        //UDP Server Information
-        private const int PORT_NO = 5000;
-        private const string SERVER_IP = "127.0.0.1";
+        ////WiFi Information
+        //private static string SSID = "";
+        //private static string PASSWORD = "";
+
+        ////UDP Server Information
+        //private const int PORT_NO = 5000;
+        //private const string SERVER_IP = "127.0.0.1";
 
 
         public MeadowApp()
@@ -55,16 +52,12 @@ namespace meadowWiFiCom
         }
         public void Initialize()
         {
-            led.SetColor(RgbLed.Colors.Red);
+            RgbLed led = new RgbLed(Device,
+                                    Device.Pins.OnboardLedRed,
+                                    Device.Pins.OnboardLedGreen,
+                                    Device.Pins.OnboardLedBlue);
+            led.StartBlink(RgbLed.Colors.Red);
 
-            InitializeDisplay();
-            //InitializeWiFi().Wait();
-
-            led.SetColor(RgbLed.Colors.Green);
-        }
-
-        public void InitializeDisplay()
-        {
             var config = new SpiClockConfiguration(6000, SpiClockConfiguration.Mode.Mode3);
             st7735 = new St7735
             (
@@ -78,44 +71,63 @@ namespace meadowWiFiCom
                 resetPin: Device.Pins.D00,
                 width: 128,
                 height: 160,
-                St7735.DisplayType.ST7735R_BlackTab
+                St7735.DisplayType.ST7735R
             );
             graphics = new GraphicsLibrary(st7735);
 
             graphics.Clear(true);
-            graphics.DrawText(0, 0, "Welcome.");
-            graphics.DrawText(0, 5, "To.");
-            graphics.DrawText(0, 10, "Meadow WiFi!");
+
+            int indent = 20;
+            int spacing = 20;
+            int y = 5;
+
+            graphics.CurrentFont = new Font8x12();
+            graphics.DrawText(indent, y, "Meadow F7 SPI ST7735!!");
+            graphics.DrawText(indent, y += spacing, "Red", Color.Red);
+            graphics.DrawText(indent, y += spacing, "Purple", Color.Purple);
+            graphics.DrawText(indent, y += spacing, "BlueViolet", Color.BlueViolet);
+            graphics.DrawText(indent, y += spacing, "Blue", Color.Blue);
+            graphics.DrawText(indent, y += spacing, "Cyan", Color.Cyan);
+            graphics.DrawText(indent, y += spacing, "LawnGreen", Color.LawnGreen);
+            graphics.DrawText(indent, y += spacing, "GreenYellow", Color.GreenYellow);
+            graphics.DrawText(indent, y += spacing, "Yellow", Color.Yellow);
+            graphics.DrawText(indent, y += spacing, "Orange", Color.Orange);
+            graphics.DrawText(indent, y += spacing, "Brown", Color.Brown);
+
             graphics.Show();
+
+            //InitializeWiFi().Wait();
+
+            led.StartBlink(RgbLed.Colors.Green);
+            Thread.Sleep(5000);
         }
 
-        async Task InitializeWiFi()
-        {
-            //Display debug message on display and change board LED to blue
-            graphics.Clear(true);
-            graphics.DrawText(0, 5, "Connecting to WiFi...");
-            graphics.Show();
-            led.SetColor(RgbLed.Colors.Blue);
+        //async Task InitializeWiFi()
+        //{
+        //    //Display debug message on display and change board LED to blue
+        //    graphics.Clear(true);
+        //    graphics.DrawText(0, 5, "Connecting to WiFi...");
+        //    graphics.Show();
 
-            Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;     //Do this event once we are connected to WiFi
+        //    Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;     //Do this event once we are connected to WiFi
 
-            var connectionResult = await Device.WiFiAdapter.Connect(SSID, PASSWORD); //Connect to WiFi, and save result
+        //    var connectionResult = await Device.WiFiAdapter.Connect(SSID, PASSWORD); //Connect to WiFi, and save result
 
-            if (connectionResult.ConnectionStatus != ConnectionStatus.Success)       //If not connected will throw error
-            {
-                graphics.Clear(true);
-                graphics.DrawText(0, 5, "Problem Connecting.");
-                graphics.Show();
+        //    if (connectionResult.ConnectionStatus != ConnectionStatus.Success)       //If not connected will throw error
+        //    {
+        //        graphics.Clear(true);
+        //        graphics.DrawText(0, 5, "Problem Connecting.");
+        //        graphics.Show();
 
-                throw new Exception($"Cannot connect to network: {connectionResult.ConnectionStatus}");
-            }
-        }
+        //        throw new Exception($"Cannot connect to network: {connectionResult.ConnectionStatus}");
+        //    }
+        //}
 
-        private void WiFiAdapter_ConnectionCompleted(object sender, EventArgs e)
-        {
-            graphics.Clear(true);
-            graphics.DrawText(0, 5, "Connected.");
-            graphics.Show();
-        }
+        //private void WiFiAdapter_ConnectionCompleted(object sender, EventArgs e)
+        //{
+        //    graphics.Clear(true);
+        //    graphics.DrawText(0, 5, "Connected.");
+        //    graphics.Show();
+        //}
     }
 }
