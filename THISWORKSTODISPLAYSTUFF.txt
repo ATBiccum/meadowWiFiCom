@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 
  * Goal; 
  *
@@ -35,13 +35,16 @@ namespace meadowWiFiCom
         St7735 st7735;
         GraphicsLibrary graphics;
 
-        //WiFi Information
-        private static string SSID = "TELUS0108";
-        private static string PASSWORD = "kz9s7yhs3v";
+
+
+        ////WiFi Information
+        //private static string SSID = "";
+        //private static string PASSWORD = "";
 
         ////UDP Server Information
         //private const int PORT_NO = 5000;
         //private const string SERVER_IP = "127.0.0.1";
+
 
         public MeadowApp()
         {
@@ -76,47 +79,41 @@ namespace meadowWiFiCom
 
             graphics.CurrentFont = new Font8x12();
 
-            graphics.DrawText(5, 20, "Welcome To");
-            graphics.DrawText(5, 20, "Meadow WiFi!");
+            graphics.DrawText(5, 20, "Hello World!");
 
             graphics.Show();
 
-            Thread.Sleep(1000);
+            //InitializeWiFi().Wait();
 
             led.StartBlink(RgbLed.Colors.Green);
-
-            InitializeWiFi().Wait();
-
-            led.StartBlink(RgbLed.Colors.Blue);
-
         }
 
-        async Task InitializeWiFi()
-        {
-            //Display debug message on display and change board LED to blue
-            graphics.Clear(true);
-            graphics.DrawText(0, 5, "Connecting to WiFi...");
-            graphics.Show();
+        //async Task InitializeWiFi()
+        //{
+        //    //Display debug message on display and change board LED to blue
+        //    graphics.Clear(true);
+        //    graphics.DrawText(0, 5, "Connecting to WiFi...");
+        //    graphics.Show();
 
-            Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;     //Do this event once we are connected to WiFi
+        //    Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;     //Do this event once we are connected to WiFi
 
-            var connectionResult = await Device.WiFiAdapter.Connect(SSID, PASSWORD); //Connect to WiFi, and save result
+        //    var connectionResult = await Device.WiFiAdapter.Connect(SSID, PASSWORD); //Connect to WiFi, and save result
 
-            if (connectionResult.ConnectionStatus != ConnectionStatus.Success)       //If not connected will throw error
-            {
-                graphics.Clear(true);
-                graphics.DrawText(0, 5, "Problem Connecting.");
-                graphics.Show();
+        //    if (connectionResult.ConnectionStatus != ConnectionStatus.Success)       //If not connected will throw error
+        //    {
+        //        graphics.Clear(true);
+        //        graphics.DrawText(0, 5, "Problem Connecting.");
+        //        graphics.Show();
 
-                throw new Exception($"Cannot connect to network: {connectionResult.ConnectionStatus}");
-            }
-        }
+        //        throw new Exception($"Cannot connect to network: {connectionResult.ConnectionStatus}");
+        //    }
+        //}
 
-        private void WiFiAdapter_ConnectionCompleted(object sender, EventArgs e)
-        {
-            graphics.Clear(true);
-            graphics.DrawText(0, 5, "Connected.");
-            graphics.Show();
-        }
+        //private void WiFiAdapter_ConnectionCompleted(object sender, EventArgs e)
+        //{
+        //    graphics.Clear(true);
+        //    graphics.DrawText(0, 5, "Connected.");
+        //    graphics.Show();
+        //}
     }
 }
