@@ -165,15 +165,15 @@ namespace meadowSolarGUI
 
         private void butt_OpenClose_Click(object sender, RoutedEventArgs e)
         {
+            //https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.udpclient.receive?view=net-6.0
+            //Creates a UdpClient for reading incoming data.
+            UdpClient udpclient = new UdpClient(11000);
+
+            //Creates an IPEndPoint to record the IP Address and port number of the sender.
+            // The IPEndPoint will allow you to read datagrams sent from any source.
+            IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
             if (!bPortOpen)
             {
-                //https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.udpclient.receive?view=net-6.0
-                //Creates a UdpClient for reading incoming data.
-                UdpClient udpclient = new UdpClient(11000);
-
-                //Creates an IPEndPoint to record the IP Address and port number of the sender.
-                // The IPEndPoint will allow you to read datagrams sent from any source.
-                IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
                 try
                 {
                     // Blocks until a message returns on this socket from a remote host.
@@ -206,7 +206,7 @@ namespace meadowSolarGUI
             }
             else
             {
-                               //Close the port using seriaport
+                udpclient.Close();           //Close the port using seriaport
                 butt_OpenClose.Content = "Open";            //Change button content to open now that its closed
                 bPortOpen = false;                          //Restate our bool 
             }
