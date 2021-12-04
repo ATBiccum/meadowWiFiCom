@@ -86,11 +86,10 @@ namespace meadowWiFiCom
 
         public MeadowApp()
         {
-            //Initialize screen, wifi, and udp connection to server.
+            //Initialize screen, wifi, udp connection to server, and packet variables.
             Initialize();
-
+            //Start sending packets.
             SendLoop();
-
         }
 
         private void Initialize()
@@ -108,7 +107,6 @@ namespace meadowWiFiCom
             InitializeWiFi().Wait();
 
             InitializeUDP();
-
 
             led.StartBlink(RgbLed.Colors.Green);
         }
@@ -323,30 +321,30 @@ namespace meadowWiFiCom
         {
             while (true)
             {
+                //Packet creation state machine format: "###P##AN00AN01AN02AN03AN04AN05bbbbCHKrn"
                 switch (TXstate)
                 {
-                case 0: // begin making output packet
+                case 0: 
                     {
-                        outPacket = "###"; //header
+                        outPacket = "###";       
                         checkSum = 0;
                         index = 0;
                         analogPin = 0;
-                        //digitalPin=0;
-                        digitalPin = digitalInReq - 1;//start with Most significant pin 
-                        outPacket += packetNumber++.ToString("D3"); //inc packet number add to outPacket string
-                        packetNumber %= 1000;   //packetnumber rollover code 
-                        TXstate = 1;  //move to next state
-                        
+                        digitalPin = digitalInReq - 1;              //Start with most significant pin 
+                        outPacket += packetNumber++.ToString("D3"); //Increment packet number and add to outPacket string
+                        packetNumber %= 1000;                       //Packetnumber rollover
+                        TXstate = 1; //Move to next state
+                        break;
                     }
-                    break;
-                case 1: // continue making output packet and do analog at the same time
+                    
+                case 1: 
                     {
+                        //Add our analog read values to the outpacket string
                         outPacket += milliVolts00 + milliVolts01 + milliVolts02 + milliVolts03 + milliVolts04 + milliVolts05;
-
-                        TXstate = 2;// move to next state when all analog complete
-                        
+                        TXstate = 2; //Move to next state
+                        break;
                     }
-                    break;
+                    
                 case 2:
                     {
                         bool[] currentState = new bool[4];
@@ -368,39 +366,37 @@ namespace meadowWiFiCom
                             }
                             outPacket += outString;
                         }
-                        //Console.WriteLine(outPacket);
-                        //Thread.Sleep(1000);
-                        TXstate = 3;//move to next state when all input complete
-                        
+                        TXstate = 3; //Move to next state
+                        break;
                     }
-                    break;
+                   
                 case 3:
                     {
                         for (int i = 3; i < outPacket.Length; i++)
                         {
-                            checkSum += (byte)outPacket[i];//calculate check sum
+                            checkSum += (byte)outPacket[i];     //Calculate the check sum
                         }
-                        checkSum %= 1000; //trucate check sum to 3 digits
-                        outPacket += checkSum.ToString("D3");
-                        outPacket += "\r\n";// add carriage return, line feed
-                        packetLen = outPacket.Length;//set packet length to send
-                                                        //Console.WriteLine(outPacket);
-                                                        //Thread.Sleep(1000);
-                        TXstate = 4; //move to next state
-                        
+                        checkSum %= 1000;                       //Truncate the check sum to 3 digits
+                        outPacket += checkSum.ToString("D3");   //Add it to the end of outpacket
+                        outPacket += "\r\n";                    //Add a carriage return, and line feed
+                        packetLen = outPacket.Length;           //Set packet length to send
+                        TXstate = 4; //Move to next state
+                        break;
                     }
-                    break;
-                case 4: // stay in case 4 until entire packet is sent 
-                    //if (index == packetLen)// when entire packet is sent check interval
+                    
+                case 4: 
                     {
                         var buffer = new byte[35];
-                        buffer = Encoding.UTF8.GetBytes(outPacket);
-                        serialPort.Write(buffer);
+                        //buffer = Encoding.UTF8.GetBytes(outPacket);
+                        //serialPort.Write(buffer);
+                        
+                        Byte[] sendBytes = Encoding.ASCII.GetBytes(outPacket); //Encode in ASCII to send UDP
+                        udpclient.Send(sendBytes, sendBytes.Length);           //Send the bytes to the connected UDP server
                         Thread.Sleep(packetTime);
 
-                        TXstate = 0; //reset the state when the whole packet is sent
+                        TXstate = 0; //Reset to state 0
+                        break;
                     }
-                    break;
                 }
             }  
         }
