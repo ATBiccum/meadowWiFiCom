@@ -1,6 +1,6 @@
 ﻿/*
  * 
- * Goal; get TCP protocol working over WiFi and receiving in a WPF application. 
+ * Goal; get UDP protocol working over WiFi and receiving in a WPF application. 
  * Debug using ST7735 Display. 
  * 
  */
@@ -30,8 +30,8 @@ namespace meadowWiFiCom
         GraphicsLibrary graphics;
 
         //WiFi Information
-        private string SSID = "";
-        private string PASSWORD = "";
+        string SSID = "";
+        string PASSWORD = "";
 
         //TCP Server Information
         private const int PORT_NO = 5000;
@@ -42,7 +42,7 @@ namespace meadowWiFiCom
         {
             Initialize();
         }
-        void Initialize()
+        public void Initialize()
         {
             var led = new RgbLed(Device,
                                 Device.Pins.OnboardLedRed,
@@ -51,12 +51,12 @@ namespace meadowWiFiCom
             led.SetColor(RgbLed.Colors.Red);
 
             InitializeDisplay();
-            InitializeWiFi().Wait();
+            //InitializeWiFi().Wait();
 
             led.SetColor(RgbLed.Colors.Green);
         }
 
-        void InitializeDisplay()
+        public void InitializeDisplay()
         {
             var config = new SpiClockConfiguration(6000, SpiClockConfiguration.Mode.Mode3);
             st7735 = new St7735
@@ -71,51 +71,32 @@ namespace meadowWiFiCom
                 resetPin: Device.Pins.D00,
                 width: 128,
                 height: 160,
-                St7735.DisplayType.ST7735R_BlackTab
+                St7735.DisplayType.ST7735R
             );
             graphics = new GraphicsLibrary(st7735);
             graphics.Clear(true);
+            graphics.DrawText(0, 0, "Welcome.");
         }
 
-        async Task InitializeWiFi()
-        {
-            graphics.DrawText(0, 0, "Connecting to WiFi...");
+        //async Task InitializeWiFi()
+        //{
+        //    graphics.Clear(true);
+        //    graphics.DrawText(0, 5, "Connecting to WiFi...");
+            
+        //    Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;
 
-            Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;
+        //    var connectionResult = await Device.WiFiAdapter.Connect(SSID, PASSWORD);
 
-            var connectionResult = await Device.WiFiAdapter.Connect(SSID, PASSWORD);
+        //    if (connectionResult.ConnectionStatus != ConnectionStatus.Success)
+        //    {
+        //        throw new Exception($"Cannot connect to network: {connectionResult.ConnectionStatus}");
+        //    }
+        //}
 
-            if (connectionResult.ConnectionStatus != ConnectionStatus.Success)
-            {
-                throw new Exception($"Cannot connect to network: {connectionResult.ConnectionStatus}");
-            }
-        }
-
-        private void WiFiAdapter_ConnectionCompleted(object sender, EventArgs e)
-        {
-            graphics.DrawText(0, 0, "Connected.");
-        }
-
-        private void TCPclient(string message)
-        {
-            //https://stackoverflow.com/questions/10182751/server-client-send-receive-simple-text
-
-            //---create a TCPClient object at the IP and port no.---
-            TcpClient client = new TcpClient(SERVER_IP, PORT_NO);
-            NetworkStream nwStream = client.GetStream();
-            byte[] bytesToSend = ASCIIEncoding.ASCII.GetBytes(message);
-
-            //---send the text---
-            graphics.DrawText(0, 0, message);
-            nwStream.Write(bytesToSend, 0, bytesToSend.Length);
-
-            //---read back the text---
-            byte[] bytesToRead = new byte[client.ReceiveBufferSize];
-            int bytesRead = nwStream.Read(bytesToRead, 0, client.ReceiveBufferSize);
-            Console.WriteLine("Received : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead));
-            Console.ReadLine();
-            client.Close();
-
-        }
+        //private void WiFiAdapter_ConnectionCompleted(object sender, EventArgs e)
+        //{
+        //    graphics.Clear(true);
+        //    graphics.DrawText(0, 5, "Connected.");
+        //}
     }
 }
