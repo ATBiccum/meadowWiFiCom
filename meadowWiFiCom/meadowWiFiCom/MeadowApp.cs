@@ -16,6 +16,8 @@ using Meadow.Foundation.Leds;
 using Meadow.Gateway.WiFi;
 using Meadow.Hardware;
 using System;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -28,8 +30,13 @@ namespace meadowWiFiCom
         GraphicsLibrary graphics;
 
         //WiFi Information
-        string SSID = "";
-        string PASSWORD = "";
+        private string SSID = "";
+        private string PASSWORD = "";
+
+        //TCP Server Information
+        private const int PORT_NO = 5000;
+        private const string SERVER_IP = "127.0.0.1";
+
 
         public MeadowApp()
         {
@@ -41,8 +48,8 @@ namespace meadowWiFiCom
                                 Device.Pins.OnboardLedRed,
                                 Device.Pins.OnboardLedGreen,
                                 Device.Pins.OnboardLedBlue);
-            led.SetColor(RgbLed.Colors.Red);            
-            
+            led.SetColor(RgbLed.Colors.Red);
+
             InitializeDisplay();
             InitializeWiFi().Wait();
 
@@ -52,7 +59,7 @@ namespace meadowWiFiCom
         void InitializeDisplay()
         {
             var config = new SpiClockConfiguration(6000, SpiClockConfiguration.Mode.Mode3);
-            st7735 = new St7735 
+            st7735 = new St7735
             (
                 device: Device,
                 spiBus: Device.CreateSpiBus(Device.Pins.SCK,
@@ -73,7 +80,7 @@ namespace meadowWiFiCom
         async Task InitializeWiFi()
         {
             graphics.DrawText(0, 0, "Connecting to WiFi...");
-            
+
             Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;
 
             var connectionResult = await Device.WiFiAdapter.Connect(SSID, PASSWORD);
@@ -91,29 +98,24 @@ namespace meadowWiFiCom
 
         private void TCPclient(string message)
         {
-        https://stackoverflow.com/questions/10182751/server-client-send-receive-simple-text
-            const int PORT_NO = 5000;
-            const string SERVER_IP = "127.0.0.1";
-            static void Main(string[] args)
-            {
-                //---data to send to the server---
-                string textToSend = DateTime.Now.ToString();
+            //https://stackoverflow.com/questions/10182751/server-client-send-receive-simple-text
 
-                //---create a TCPClient object at the IP and port no.---
-                TcpClient client = new TcpClient(SERVER_IP, PORT_NO);
-                NetworkStream nwStream = client.GetStream();
-                byte[] bytesToSend = ASCIIEncoding.ASCII.GetBytes(textToSend);
+            //---create a TCPClient object at the IP and port no.---
+            TcpClient client = new TcpClient(SERVER_IP, PORT_NO);
+            NetworkStream nwStream = client.GetStream();
+            byte[] bytesToSend = ASCIIEncoding.ASCII.GetBytes(message);
 
-                //---send the text---
-                Console.WriteLine("Sending : " + textToSend);
-                nwStream.Write(bytesToSend, 0, bytesToSend.Length);
+            //---send the text---
+            graphics.DrawText(0, 0, message);
+            nwStream.Write(bytesToSend, 0, bytesToSend.Length);
 
-                //---read back the text---
-                byte[] bytesToRead = new byte[client.ReceiveBufferSize];
-                int bytesRead = nwStream.Read(bytesToRead, 0, client.ReceiveBufferSize);
-                Console.WriteLine("Received : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead));
-                Console.ReadLine();
-                client.Close();
-            }
+            //---read back the text---
+            byte[] bytesToRead = new byte[client.ReceiveBufferSize];
+            int bytesRead = nwStream.Read(bytesToRead, 0, client.ReceiveBufferSize);
+            Console.WriteLine("Received : " + Encoding.ASCII.GetString(bytesToRead, 0, bytesRead));
+            Console.ReadLine();
+            client.Close();
+
+        }
     }
 }
