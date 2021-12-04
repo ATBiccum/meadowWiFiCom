@@ -392,6 +392,9 @@ namespace meadowWiFiCom
                         
                         Byte[] sendBytes = Encoding.ASCII.GetBytes(outPacket); //Encode in ASCII to send UDP
                         udpclient.Send(sendBytes, sendBytes.Length);           //Send the bytes to the connected UDP server
+                        graphics.Clear(true);
+                        graphics.DrawText(5, 5, "Sending Stuff!");
+                        graphics.Show();
                         Thread.Sleep(packetTime);
 
                         TXstate = 0; //Reset to state 0
