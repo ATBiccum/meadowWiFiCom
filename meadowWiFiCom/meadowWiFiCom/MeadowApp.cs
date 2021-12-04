@@ -1,14 +1,18 @@
-﻿/*
+﻿/* meadowWiFiCom Firmware
  * 
- * Goal; 
- *
+ * Anthony Biccum
+ * ECET 230 Object Oriented Programming 
+ * Camosun College
+ * 
+ * This is the firmware for the meadow board to communicate packets with my WPF UDP server. 
+ * 
  * Read analog pins and create packets to be sent.
  * Connect to WiFi and then to UDP server. 
  * Setup meadow board as UDP client to send and receive packets.
  * Parse received packets to turn on led's and graphics data.
  * 
  * 
- * Debugging 7735 screen not working now. Mono is running
+ * 
  */
 
 
@@ -46,8 +50,9 @@ namespace meadowWiFiCom
         public MeadowApp()
         {
             Initialize();
+
         }
-        public void Initialize()
+        private void Initialize()
         {
             RgbLed led = new RgbLed(Device,
                                     Device.Pins.OnboardLedRed,
@@ -55,6 +60,21 @@ namespace meadowWiFiCom
                                     Device.Pins.OnboardLedBlue);
             led.SetColor(RgbLed.Colors.Red);
 
+            InitializeDisplay();
+
+            led.SetColor(RgbLed.Colors.Green);
+
+            InitializeWiFi().Wait();
+
+            led.SetColor(RgbLed.Colors.Blue);
+
+            InitializeUDP();
+
+            led.SetColor(RgbLed.Colors.Yellow);
+        }
+
+        private void InitializeDisplay()
+        {
             var config = new SpiClockConfiguration(6000, SpiClockConfiguration.Mode.Mode3);
             st7735 = new St7735
             (
@@ -73,29 +93,17 @@ namespace meadowWiFiCom
             graphics = new GraphicsLibrary(st7735);
 
             graphics.Clear(true);
-
             graphics.CurrentFont = new Font8x12();
-
             graphics.DrawText(5, 20, "Welcome To");
             graphics.DrawText(5, 20, "Meadow WiFi!");
-
             graphics.Show();
-
-            Thread.Sleep(1000);
-
-            led.StartBlink(RgbLed.Colors.Green);
-
-            InitializeWiFi().Wait();
-
-            led.StartBlink(RgbLed.Colors.Blue);
-
         }
 
         async Task InitializeWiFi()
         {
             //Display debug message on display and change board LED to blue
             graphics.Clear(true);
-            graphics.DrawText(0, 5, "Connecting to WiFi...");
+            graphics.DrawText(0, 5, "Connecting...");
             graphics.Show();
 
             Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;     //Do this event once we are connected to WiFi
@@ -117,6 +125,11 @@ namespace meadowWiFiCom
             graphics.Clear(true);
             graphics.DrawText(0, 5, "Connected.");
             graphics.Show();
+        }
+
+        public void InitializeUDP()
+        {
+
         }
     }
 }
