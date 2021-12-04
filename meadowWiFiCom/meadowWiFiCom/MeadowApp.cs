@@ -56,7 +56,7 @@ namespace meadowWiFiCom
                                     Device.Pins.OnboardLedRed,
                                     Device.Pins.OnboardLedGreen,
                                     Device.Pins.OnboardLedBlue);
-            led.StartBlink(RgbLed.Colors.Red);
+            led.SetColor(RgbLed.Colors.Red);
 
             var config = new SpiClockConfiguration(6000, SpiClockConfiguration.Mode.Mode3);
             st7735 = new St7735
@@ -71,35 +71,21 @@ namespace meadowWiFiCom
                 resetPin: Device.Pins.D00,
                 width: 128,
                 height: 160,
-                St7735.DisplayType.ST7735R
+                St7735.DisplayType.ST7735R_BlackTab
             );
             graphics = new GraphicsLibrary(st7735);
 
             graphics.Clear(true);
 
-            int indent = 20;
-            int spacing = 20;
-            int y = 5;
-
             graphics.CurrentFont = new Font8x12();
-            graphics.DrawText(indent, y, "Meadow F7 SPI ST7735!!");
-            graphics.DrawText(indent, y += spacing, "Red", Color.Red);
-            graphics.DrawText(indent, y += spacing, "Purple", Color.Purple);
-            graphics.DrawText(indent, y += spacing, "BlueViolet", Color.BlueViolet);
-            graphics.DrawText(indent, y += spacing, "Blue", Color.Blue);
-            graphics.DrawText(indent, y += spacing, "Cyan", Color.Cyan);
-            graphics.DrawText(indent, y += spacing, "LawnGreen", Color.LawnGreen);
-            graphics.DrawText(indent, y += spacing, "GreenYellow", Color.GreenYellow);
-            graphics.DrawText(indent, y += spacing, "Yellow", Color.Yellow);
-            graphics.DrawText(indent, y += spacing, "Orange", Color.Orange);
-            graphics.DrawText(indent, y += spacing, "Brown", Color.Brown);
+
+            graphics.DrawText(5, 20, "Hello World!");
 
             graphics.Show();
 
             //InitializeWiFi().Wait();
 
             led.StartBlink(RgbLed.Colors.Green);
-            Thread.Sleep(5000);
         }
 
         //async Task InitializeWiFi()
