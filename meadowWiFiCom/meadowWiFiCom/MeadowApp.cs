@@ -1,8 +1,14 @@
 ﻿/*
  * 
- * Goal; get UDP protocol working over WiFi and receiving in a WPF application. 
- * Debug using ST7735 Display. 
+ * Goal; 
+ *
+ * Read analog pins and create packets to be sent.
+ * Connect to WiFi and then to UDP server. 
+ * Setup meadow board as UDP client to send and receive packets.
+ * Parse received packets to turn on led's and graphics data.
  * 
+ * 
+ * Debugging 7735 screen not working now. Mono is running
  */
 
 
@@ -29,11 +35,16 @@ namespace meadowWiFiCom
         St7735 st7735;
         GraphicsLibrary graphics;
 
-        //WiFi Information
-        string SSID = "";
-        string PASSWORD = "";
+        RgbLed led = new RgbLed(Device,
+                    Device.Pins.OnboardLedRed,
+                    Device.Pins.OnboardLedGreen,
+                    Device.Pins.OnboardLedBlue);
 
-        //TCP Server Information
+        //WiFi Information
+        private static string SSID = "";
+        private static string PASSWORD = "";
+
+        //UDP Server Information
         private const int PORT_NO = 5000;
         private const string SERVER_IP = "127.0.0.1";
 
@@ -44,10 +55,6 @@ namespace meadowWiFiCom
         }
         public void Initialize()
         {
-            var led = new RgbLed(Device,
-                                Device.Pins.OnboardLedRed,
-                                Device.Pins.OnboardLedGreen,
-                                Device.Pins.OnboardLedBlue);
             led.SetColor(RgbLed.Colors.Red);
 
             InitializeDisplay();
@@ -71,32 +78,44 @@ namespace meadowWiFiCom
                 resetPin: Device.Pins.D00,
                 width: 128,
                 height: 160,
-                St7735.DisplayType.ST7735R
+                St7735.DisplayType.ST7735R_BlackTab
             );
             graphics = new GraphicsLibrary(st7735);
+
             graphics.Clear(true);
             graphics.DrawText(0, 0, "Welcome.");
+            graphics.DrawText(0, 5, "To.");
+            graphics.DrawText(0, 10, "Meadow WiFi!");
+            graphics.Show();
         }
 
-        //async Task InitializeWiFi()
-        //{
-        //    graphics.Clear(true);
-        //    graphics.DrawText(0, 5, "Connecting to WiFi...");
-            
-        //    Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;
+        async Task InitializeWiFi()
+        {
+            //Display debug message on display and change board LED to blue
+            graphics.Clear(true);
+            graphics.DrawText(0, 5, "Connecting to WiFi...");
+            graphics.Show();
+            led.SetColor(RgbLed.Colors.Blue);
 
-        //    var connectionResult = await Device.WiFiAdapter.Connect(SSID, PASSWORD);
+            Device.WiFiAdapter.WiFiConnected += WiFiAdapter_ConnectionCompleted;     //Do this event once we are connected to WiFi
 
-        //    if (connectionResult.ConnectionStatus != ConnectionStatus.Success)
-        //    {
-        //        throw new Exception($"Cannot connect to network: {connectionResult.ConnectionStatus}");
-        //    }
-        //}
+            var connectionResult = await Device.WiFiAdapter.Connect(SSID, PASSWORD); //Connect to WiFi, and save result
 
-        //private void WiFiAdapter_ConnectionCompleted(object sender, EventArgs e)
-        //{
-        //    graphics.Clear(true);
-        //    graphics.DrawText(0, 5, "Connected.");
-        //}
+            if (connectionResult.ConnectionStatus != ConnectionStatus.Success)       //If not connected will throw error
+            {
+                graphics.Clear(true);
+                graphics.DrawText(0, 5, "Problem Connecting.");
+                graphics.Show();
+
+                throw new Exception($"Cannot connect to network: {connectionResult.ConnectionStatus}");
+            }
+        }
+
+        private void WiFiAdapter_ConnectionCompleted(object sender, EventArgs e)
+        {
+            graphics.Clear(true);
+            graphics.DrawText(0, 5, "Connected.");
+            graphics.Show();
+        }
     }
 }
