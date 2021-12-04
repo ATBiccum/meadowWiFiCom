@@ -1,9 +1,9 @@
-﻿/* USBmeadowGUI Project
+﻿/* meadowSolarGUI Project
  * 
  * ECET 230
  * Camosun College
  * Tony Biccum
- * November 4th, 2021
+ *
  * 
  * This project creates a GUI for solar panel data received from the meadow board.
  * It communicates through packets and can send packets to the meadow to turn on LEDs.
@@ -27,17 +27,14 @@ using System.IO.Ports;
 using System.Net;
 using System.Net.Sockets;
 
-namespace usbArduinoGUI
+namespace meadowSolarGUI
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         //Initialize variables
         private bool bPortOpen = false;
         private string text;
-        private IPAddress address;
+        //private IPAddress address;
         private int checkSumError = 0;
         private int checkSumCalculated = 0;
         private int oldPacketNumber = -1;
@@ -65,25 +62,24 @@ namespace usbArduinoGUI
             text_packetLost.Text = "0";
         }
 
-        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            try
-            {
-                
-                //Need to save string from packet into text variable 
-                text = text.ToString();
+        //private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        //{
+        //    try
+        //    {
+        //        //Need to save string from packet into text variable 
+        //        text = text.ToString();
 
-                if (text_packetReceived.Dispatcher.CheckAccess())     //If we have access to the thread then update the ui
-                {
-                    UpdateUI(text);
-                }
-                else
-                {                                               //If we do not have access to the thread
-                    text_packetReceived.Dispatcher.Invoke(() => { UpdateUI(text); });
-                }
-            }
-            catch (TimeoutException) { }                        //If no data is received then timeout error
-        }
+        //        if (text_packetReceived.Dispatcher.CheckAccess())     //If we have access to the thread then update the ui
+        //        {
+        //            UpdateUI(text);
+        //        }
+        //        else
+        //        {                                               //If we do not have access to the thread
+        //            text_packetReceived.Dispatcher.Invoke(() => { UpdateUI(text); });
+        //        }
+        //    }
+        //    catch (TimeoutException) { }                        //If no data is received then timeout error
+        //}
 
         private void UpdateUI(string text)
         {
@@ -171,21 +167,46 @@ namespace usbArduinoGUI
         {
             if (!bPortOpen)
             {
-                //Connect
-                string IP = text_IP.Text.ToString();
-                int port = Convert.ToInt32(text_PORT.Text);
+                //https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.udpclient.receive?view=net-6.0
+                //Creates a UdpClient for reading incoming data.
+                UdpClient udpclient = new UdpClient(11000);
 
-                Parse(IP);
-                
-                UDPserverInit(address, port);
+                //Creates an IPEndPoint to record the IP Address and port number of the sender.
+                // The IPEndPoint will allow you to read datagrams sent from any source.
+                IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                try
+                {
+                    // Blocks until a message returns on this socket from a remote host.
+                    Byte[] receiveBytes = udpclient.Receive(ref RemoteIpEndPoint);
 
+                    text = Encoding.ASCII.GetString(receiveBytes);
+
+                    //Need to save string from packet into text variable 
+                    text = text.ToString();
+
+                    if (text_packetReceived.Dispatcher.CheckAccess())     //If we have access to the thread then update the ui
+                    {
+                        UpdateUI(text);
+                    }
+                    else
+                    {                                               //If we do not have access to the thread
+                        text_packetReceived.Dispatcher.Invoke(() => { UpdateUI(text); });
+                    }
+
+                    text_IP.Text = RemoteIpEndPoint.Address.ToString();
+                    text_PORT.Text = RemoteIpEndPoint.Port.ToString();
+                }
+                catch (Exception ef)
+                {
+                    Console.WriteLine(ef.ToString());
+                }
 
                 butt_OpenClose.Content = "Close";           //Rename the content in the button to close because it is open now
                 bPortOpen = true;                           //Restate our bool to true now
             }
             else
             {
-                serialport.Close();                         //Close the port using seriaport
+                               //Close the port using seriaport
                 butt_OpenClose.Content = "Open";            //Change button content to open now that its closed
                 bPortOpen = false;                          //Restate our bool 
             }
@@ -254,7 +275,7 @@ namespace usbArduinoGUI
                 string messageOut = stringBuilder.ToString();               //Read the packet in the box
                 messageOut += "\r\n";                                       //Add a carriage and line return to message
                 byte[] messageBytes = Encoding.UTF8.GetBytes(messageOut);   //Convert to a byte array
-                serialport.Write(messageBytes, 0, messageBytes.Length);     //Write the bytes to the serial port to send
+                //serialport.Write(messageBytes, 0, messageBytes.Length);     //Write the bytes to the serial port to send
                 txCheckSum = 0;
             }
             catch (Exception ex)
@@ -262,16 +283,6 @@ namespace usbArduinoGUI
                 MessageBox.Show(ex.Message);                            //Throw an exception instead of crashing
             }
         }
-
-        public static void UDPserverInit(IPAddress IP, int PORT)
-        {
-
-            IPEndPoint ipep = new IPEndPoint(IP, PORT);
-            UdpClient newsock = new UdpClient();
-
-        }
-
-
 
         private void buttonClicked(int i)
         {
@@ -296,7 +307,6 @@ namespace usbArduinoGUI
         {
             buttonClicked(1);
         }
-
         private void butt_bit2_Click(object sender, RoutedEventArgs e)
         {
             buttonClicked(2);
