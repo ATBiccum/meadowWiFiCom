@@ -45,8 +45,8 @@ namespace meadowWiFiCom
         private static string PASSWORD = "kz9s7yhs3v";
 
         //UDP Server Information
-        private const int PORT_NO = 0;
-        private const string SERVER_IP = "";
+        private const int PORT_NO = 9800;
+        private const string SERVER_IP = "192.168.1.67";
 
         /**********************Packet Variables*********************/
         string milliVolts00, milliVolts01, milliVolts02, milliVolts03, milliVolts04, milliVolts05;

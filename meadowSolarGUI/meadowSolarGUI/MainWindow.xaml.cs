@@ -8,6 +8,9 @@
  * This project creates a GUI for solar panel data received from the meadow board.
  * It communicates through packets and can send packets to the meadow to turn on LEDs.
  * 
+ * Need a bool for listening and not listening upon clicking the open button.
+ * Need event handler that activates when received a packet through IPEndPoint
+ * 
  */
 using System;
 using System.Collections.Generic;
@@ -43,6 +46,28 @@ namespace meadowSolarGUI
         private int packetRollover = 0;
         private int txCheckSum;
 
+        private Boolean listenUDP;
+        public Boolean ListenUDP
+        { 
+            get { return listenUDP; }
+            set
+            {
+                listenUDP = false;
+                if (listenUDP)
+                {
+                    ValueChanged_ListenUDP();
+                }
+            }
+        }
+
+        public static string udp_listener_ip;
+        public static int udp_listener_port;
+        public static int udp_client_port;
+        public static string udp_message;
+        public static UdpClient udpClient_listen;
+        public static UdpClient udpClient_send;
+        public static string loggingEvent;
+
         private StringBuilder stringBuilder = new StringBuilder("###1111196");
         SolarCalc solarcalc = new SolarCalc();
 
@@ -52,6 +77,67 @@ namespace meadowSolarGUI
             Loaded += MainWindow_Loaded;
         }
 
+        private void ValueChanged_ListenUDP()
+        {
+            ////https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.udpclient.receive?view=net-6.0
+            ////Creates a UdpClient for reading incoming data.
+            //UdpClient udpclient = new UdpClient(11000);
+
+            ////Creates an IPEndPoint to record the IP Address and port number of the sender.
+            //// The IPEndPoint will allow you to read datagrams sent from any source.
+            //IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 11000);
+            //try
+            //{
+            ////    // Blocks until a message returns on this socket from a remote host.
+            ////    Byte[] receiveBytes = udpclient.Receive(ref RemoteIpEndPoint);
+
+            ////    text = Encoding.ASCII.GetString(receiveBytes);
+
+            ////    //Need to save string from packet into text variable 
+            ////    text = text.ToString();
+
+            ////    if (text_packetReceived.Dispatcher.CheckAccess())     //If we have access to the thread then update the ui
+            ////    {
+            ////        UpdateUI(text);
+            ////    }
+            ////    else
+            ////    {                                               //If we do not have access to the thread
+            ////        text_packetReceived.Dispatcher.Invoke(() => { UpdateUI(text); });
+            ////    }
+
+            ////    text_IP.Text = RemoteIpEndPoint.Address.ToString();
+            ////    text_PORT.Text = RemoteIpEndPoint.Port.ToString();
+            ////}
+            ////catch (Exception ef)
+            ////{
+            ////    Console.WriteLine(ef.ToString());
+            ////}
+
+            IPEndPoint endPoint_listen = new IPEndPoint(IPAddress.Parse(udp_listener_ip), 11000);
+            udpClient_listen = new UdpClient(endPoint_listen);
+
+            IPEndPoint endPoint1 = new IPEndPoint(IPAddress.Parse(udp_listener_ip), 11001);
+            udpClient_send = new UdpClient(endPoint1);
+
+            UDPListener().Wait();
+        }
+
+        private static async Task UDPListener()
+        {
+            try
+            {
+                while (true)
+                {
+                    var udpResult = await udpClient_listen.ReceiveAsync();
+                    loggingEvent = Encoding.ASCII.GetString(udpResult.Buffer);
+                }
+            }
+
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             //Initialize some values so we dont start the program empty
@@ -165,48 +251,16 @@ namespace meadowSolarGUI
 
         private void butt_OpenClose_Click(object sender, RoutedEventArgs e)
         {
-            //https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.udpclient.receive?view=net-6.0
-            //Creates a UdpClient for reading incoming data.
-            UdpClient udpclient = new UdpClient(11000);
 
-            //Creates an IPEndPoint to record the IP Address and port number of the sender.
-            // The IPEndPoint will allow you to read datagrams sent from any source.
-            IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
             if (!bPortOpen)
             {
-                try
-                {
-                    // Blocks until a message returns on this socket from a remote host.
-                    Byte[] receiveBytes = udpclient.Receive(ref RemoteIpEndPoint);
-
-                    text = Encoding.ASCII.GetString(receiveBytes);
-
-                    //Need to save string from packet into text variable 
-                    text = text.ToString();
-
-                    if (text_packetReceived.Dispatcher.CheckAccess())     //If we have access to the thread then update the ui
-                    {
-                        UpdateUI(text);
-                    }
-                    else
-                    {                                               //If we do not have access to the thread
-                        text_packetReceived.Dispatcher.Invoke(() => { UpdateUI(text); });
-                    }
-
-                    text_IP.Text = RemoteIpEndPoint.Address.ToString();
-                    text_PORT.Text = RemoteIpEndPoint.Port.ToString();
-                }
-                catch (Exception ef)
-                {
-                    Console.WriteLine(ef.ToString());
-                }
-
+                listenUDP = true;
                 butt_OpenClose.Content = "Close";           //Rename the content in the button to close because it is open now
                 bPortOpen = true;                           //Restate our bool to true now
             }
             else
             {
-                udpclient.Close();           //Close the port using seriaport
+                listenUDP = false;
                 butt_OpenClose.Content = "Open";            //Change button content to open now that its closed
                 bPortOpen = false;                          //Restate our bool 
             }
