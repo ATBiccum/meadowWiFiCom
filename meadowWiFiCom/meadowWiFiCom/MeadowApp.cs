@@ -44,8 +44,8 @@ namespace meadowWiFiCom
         private static string SSID = "TELUS0108";
         private static string PASSWORD = "kz9s7yhs3v";
 
-        //UDP Server Information
-        private const int PORT_NO = 9800;
+        //UDP Client Information
+        private const int PORT_NO = 2001;
         private const string SERVER_IP = "192.168.1.67";
 
         /**********************Packet Variables*********************/
@@ -172,7 +172,7 @@ namespace meadowWiFiCom
             try
             {
                 //Connect to our WPF server
-                udpclient.Connect(SERVER_IP, PORT_NO);
+                udpclient.Connect(SERVER_IP, 2002);
                 //Send a message that we have connected
                 Byte[] sendBytes = Encoding.ASCII.GetBytes("Meadow has connected!");
                 udpclient.Send(sendBytes, sendBytes.Length);

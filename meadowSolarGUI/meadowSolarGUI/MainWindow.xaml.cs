@@ -29,15 +29,15 @@ using System.Windows.Shapes;
 using System.IO.Ports;
 using System.Net;
 using System.Net.Sockets;
+using System.ComponentModel;
 
 namespace meadowSolarGUI
 {
     public partial class MainWindow : Window
     {
-        //Initialize variables
+        /*****************Variables*****************/
         private bool bPortOpen = false;
-        private string text;
-        //private IPAddress address;
+        public string text;
         private int checkSumError = 0;
         private int checkSumCalculated = 0;
         private int oldPacketNumber = -1;
@@ -45,29 +45,18 @@ namespace meadowSolarGUI
         private int lostPacketCount = 0;
         private int packetRollover = 0;
         private int txCheckSum;
+        private bool _backgroundworker = false;
 
-        private Boolean listenUDP;
-        public Boolean ListenUDP
-        { 
-            get { return listenUDP; }
-            set
-            {
-                listenUDP = false;
-                if (listenUDP)
-                {
-                    ValueChanged_ListenUDP();
-                }
-            }
-        }
+        //Receiving IP Address (and IPEndPoint)
+        private static string IPraw = "000.000.000.000";
+        private readonly IPAddress IP = IPAddress.Parse(IPraw);
+        //Receiving Port 2002
+        private int PORT;
+        //IPEndPoint Port
+        private int PORTipep = 2003;
+        /*******************************************/
 
-        public static string udp_listener_ip;
-        public static int udp_listener_port;
-        public static int udp_client_port;
-        public static string udp_message;
-        public static UdpClient udpClient_listen;
-        public static UdpClient udpClient_send;
-        public static string loggingEvent;
-
+        private readonly BackgroundWorker worker = new BackgroundWorker();
         private StringBuilder stringBuilder = new StringBuilder("###1111196");
         SolarCalc solarcalc = new SolarCalc();
 
@@ -76,96 +65,57 @@ namespace meadowSolarGUI
             InitializeComponent();
             Loaded += MainWindow_Loaded;
         }
-
-        private void ValueChanged_ListenUDP()
-        {
-            ////https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.udpclient.receive?view=net-6.0
-            ////Creates a UdpClient for reading incoming data.
-            //UdpClient udpclient = new UdpClient(11000);
-
-            ////Creates an IPEndPoint to record the IP Address and port number of the sender.
-            //// The IPEndPoint will allow you to read datagrams sent from any source.
-            //IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 11000);
-            //try
-            //{
-            ////    // Blocks until a message returns on this socket from a remote host.
-            ////    Byte[] receiveBytes = udpclient.Receive(ref RemoteIpEndPoint);
-
-            ////    text = Encoding.ASCII.GetString(receiveBytes);
-
-            ////    //Need to save string from packet into text variable 
-            ////    text = text.ToString();
-
-            ////    if (text_packetReceived.Dispatcher.CheckAccess())     //If we have access to the thread then update the ui
-            ////    {
-            ////        UpdateUI(text);
-            ////    }
-            ////    else
-            ////    {                                               //If we do not have access to the thread
-            ////        text_packetReceived.Dispatcher.Invoke(() => { UpdateUI(text); });
-            ////    }
-
-            ////    text_IP.Text = RemoteIpEndPoint.Address.ToString();
-            ////    text_PORT.Text = RemoteIpEndPoint.Port.ToString();
-            ////}
-            ////catch (Exception ef)
-            ////{
-            ////    Console.WriteLine(ef.ToString());
-            ////}
-
-            IPEndPoint endPoint_listen = new IPEndPoint(IPAddress.Parse(udp_listener_ip), 11000);
-            udpClient_listen = new UdpClient(endPoint_listen);
-
-            IPEndPoint endPoint1 = new IPEndPoint(IPAddress.Parse(udp_listener_ip), 11001);
-            udpClient_send = new UdpClient(endPoint1);
-
-            UDPListener().Wait();
-        }
-
-        private static async Task UDPListener()
-        {
-            try
-            {
-                while (true)
-                {
-                    var udpResult = await udpClient_listen.ReceiveAsync();
-                    loggingEvent = Encoding.ASCII.GetString(udpResult.Buffer);
-                }
-            }
-
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-        }
+        /// <summary>
+        /// Runs when the main window is loaded and 
+        /// we do some initialization of values and the backgroundworker.
+        /// </summary>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            //Initialize some values so we dont start the program empty
+            //Initialize values within the text boxes for formatting
             text_packetReceived.Text = "###0000000000000000000000000000000000";
             text_Send.Text = "###0000000";
             text_checkSumError.Text = "0";
             text_packetRollover.Text = "0";
             text_packetLost.Text = "0";
+
+            worker.DoWork += worker_DoWork;
+            worker.ProgressChanged += Worker_ProgressChanged;
+            worker.WorkerReportsProgress = true;
+            worker.WorkerSupportsCancellation = true;
         }
 
-        //private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        //{
-        //    try
-        //    {
-        //        //Need to save string from packet into text variable 
-        //        text = text.ToString();
+        private void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            UpdateUI(e.UserState.ToString());
+        }
 
-        //        if (text_packetReceived.Dispatcher.CheckAccess())     //If we have access to the thread then update the ui
-        //        {
-        //            UpdateUI(text);
-        //        }
-        //        else
-        //        {                                               //If we do not have access to the thread
-        //            text_packetReceived.Dispatcher.Invoke(() => { UpdateUI(text); });
-        //        }
-        //    }
-        //    catch (TimeoutException) { }                        //If no data is received then timeout error
-        //}
+        private void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            //Run background tasks within this
+            string temp;
+            UdpClient listener = new UdpClient(PORT);
+            IPEndPoint groupEP = new IPEndPoint(IP, PORTipep);
+            
+            try
+            {
+                while (_backgroundworker)
+                {
+                    byte[] bytes = listener.Receive(ref groupEP);
+                    temp = Encoding.ASCII.GetString(bytes);
+                    worker.ReportProgress(100, temp);
+                    //System.Diagnostics.Debug.WriteLine(temp); //Use for testing received message
+                }
+            }
+            catch (SocketException ef)
+            {
+                Console.WriteLine(ef);
+            }
+            finally
+            {
+                listener.Close();
+
+            }
+        }
 
         private void UpdateUI(string text)
         {
@@ -251,59 +201,25 @@ namespace meadowSolarGUI
 
         private void butt_OpenClose_Click(object sender, RoutedEventArgs e)
         {
-
             if (!bPortOpen)
             {
-                listenUDP = true;
+                worker.RunWorkerAsync();                    //Start our background worker to start listening for UDP
                 butt_OpenClose.Content = "Close";           //Rename the content in the button to close because it is open now
-                bPortOpen = true;                           //Restate our bool to true now
+                bPortOpen = true;
+                _backgroundworker = true;
             }
             else
             {
-                listenUDP = false;
+                worker.CancelAsync();
                 butt_OpenClose.Content = "Open";            //Change button content to open now that its closed
-                bPortOpen = false;                          //Restate our bool 
-            }
-        }
-
-        public static void Parse(string ipAddress)
-        {
-            //https://docs.microsoft.com/en-us/dotnet/api/system.net.ipaddress.parse?view=net-6.0
-            try
-            {
-                // Create an instance of IPAddress for the specified address string (in
-                // dotted-quad, or colon-hexadecimal notation).
-                IPAddress address = IPAddress.Parse(ipAddress);
-
-                // Display the address in standard notation.
-                Console.WriteLine("Parsing your input string: " + "\"" + ipAddress + "\"" + " produces this address (shown in its standard notation): " + address.ToString());
-            }
-
-            catch (ArgumentNullException e)
-            {
-                Console.WriteLine("ArgumentNullException caught!!!");
-                Console.WriteLine("Source : " + e.Source);
-                Console.WriteLine("Message : " + e.Message);
-            }
-
-            catch (FormatException e)
-            {
-                Console.WriteLine("FormatException caught!!!");
-                Console.WriteLine("Source : " + e.Source);
-                Console.WriteLine("Message : " + e.Message);
-            }
-
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception caught!!!");
-                Console.WriteLine("Source : " + e.Source);
-                Console.WriteLine("Message : " + e.Message);
+                bPortOpen = false;
+                _backgroundworker = false;
             }
         }
 
         private void butt_Clear_Click(object sender, RoutedEventArgs e)
         {
-            text_packetReceived.Text = ""; //Clear the packet to nothing
+            text_packetReceived.Text = "###0000000000000000000000000000000000";
         }
 
         private void butt_Send_Click(object sender, RoutedEventArgs e)
@@ -361,13 +277,15 @@ namespace meadowSolarGUI
         {
             buttonClicked(1);
         }
-        private void butt_bit2_Click(object sender, RoutedEventArgs e)
+
+        private void text_IP_TextChanged(object sender, TextChangedEventArgs e)
         {
-            buttonClicked(2);
+            IPraw = text_IP.Text.ToString();
         }
-        private void butt_bit3_Click(object sender, RoutedEventArgs e)
+
+        private void text_PORT_TextChanged(object sender, TextChangedEventArgs e)
         {
-            buttonClicked(3);
+            PORT = Convert.ToInt32(text_PORT.Text);
         }
     }
 

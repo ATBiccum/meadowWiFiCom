@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:meadowSolarGUI"
         mc:Ignorable="d"
         Title="USB Meadow" Height="600" Width="750"
-        Background="NavajoWhite">
+        Background="SpringGreen">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -14,7 +14,7 @@
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="100"/>
-            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="103"/>
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
@@ -70,7 +70,7 @@
                  Grid.Row="1"
                  HorizontalContentAlignment="Center"
                  VerticalContentAlignment="Center"
-                 IsEnabled="False"/>
+                 Opacity="0.6" TextChanged="text_IP_TextChanged"/>
         <Label Grid.Row="1"  
                HorizontalAlignment="Center"
                Grid.Column="0"
@@ -81,7 +81,7 @@
                  Grid.Row="1"
                  HorizontalContentAlignment="Center"
                  VerticalContentAlignment="Center"
-                 IsEnabled="False"/>
+                 Opacity="0.6" TextChanged="text_PORT_TextChanged"/>
         <Label Grid.Row="1"  
                HorizontalAlignment="Center"
                Grid.Column="2"
@@ -92,34 +92,20 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition  Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <Button x:Name="butt_bit0" 
                     Content="1" 
                     Margin="1,3,1,3"
-                    Width="18"
+                    Width="45"
                     Grid.Column="0"
                     Click="butt_bit0_Click"/>
             <Button x:Name="butt_bit1" 
                     Content="1" 
                     Margin="1,3,1,3"
-                    Width="18"
+                    Width="45"
                     Grid.Column="1" 
                     HorizontalAlignment="Right" Click="butt_bit1_Click"/>
-            <Button x:Name="butt_bit2" 
-                    Content="1" 
-                    Margin="1,3,1,3"
-                    Width="18"
-                    Grid.Column="2"
-                    Click="butt_bit2_Click"/>
-            <Button x:Name="butt_bit3" 
-                    Content="1" 
-                    Margin="1,3,1,3"
-                    Width="18"
-                    Grid.Column="3"
-                    Click="butt_bit3_Click"/>
         </Grid>
 
         <Label Grid.Row="2" 
@@ -129,7 +115,6 @@
                FontSize="13"
                FontWeight="DemiBold">Packet Data</Label>
         <Label Grid.Row="2" 
-               Grid.ColumnSpan="2" 
                Grid.Column="4"
                FontSize="13"
                FontWeight="DemiBold">Packet Received</Label>
