@@ -4,14 +4,10 @@
  * Camosun College
  * Tony Biccum
  *
- * 
  * This project creates a GUI for solar panel data received from the meadow board.
- * It communicates through packets and can send packets to the meadow to turn on LEDs.
- * 
- * Need a bool for listening and not listening upon clicking the open button.
- * Need event handler that activates when received a packet through IPEndPoint
- * 
+ * It communicates through packets and can send packets to the meadow to turn on LEDs over UDP. 
  */
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,6 +61,7 @@ namespace meadowSolarGUI
             InitializeComponent();
             Loaded += MainWindow_Loaded;
         }
+
         /// <summary>
         /// Runs when the main window is loaded and 
         /// we do some initialization of values and the backgroundworker.
@@ -78,20 +75,19 @@ namespace meadowSolarGUI
             text_packetRollover.Text = "0";
             text_packetLost.Text = "0";
 
-            worker.DoWork += worker_DoWork;
-            worker.ProgressChanged += Worker_ProgressChanged;
-            worker.WorkerReportsProgress = true;
+            worker.DoWork += worker_DoWork;                     //Do work evetn, runs in the background
+            worker.ProgressChanged += Worker_ProgressChanged;   //Progress changed event can be called within Do Work to report values
+            worker.WorkerReportsProgress = true;                //Enables above event
             worker.WorkerSupportsCancellation = true;
         }
 
-        private void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            UpdateUI(e.UserState.ToString());
-        }
-
+        /// <summary>
+        /// Background worker tasks that allow UI to run seperately from
+        /// receiving messages. 
+        /// </summary>
         private void worker_DoWork(object sender, DoWorkEventArgs e)
         {
-            //Run background tasks within this
+            //Run background tasks within this; this is where we handle UDP receiving
             string temp;
             UdpClient listener = new UdpClient(PORT);
             IPEndPoint groupEP = new IPEndPoint(IP, PORTipep);
@@ -100,10 +96,10 @@ namespace meadowSolarGUI
             {
                 while (_backgroundworker)
                 {
-                    byte[] bytes = listener.Receive(ref groupEP);
-                    temp = Encoding.ASCII.GetString(bytes);
-                    worker.ReportProgress(100, temp);
-                    //System.Diagnostics.Debug.WriteLine(temp); //Use for testing received message
+                    byte[] bytes = listener.Receive(ref groupEP);   //Listen for a message; this blocks until a message is received
+                    temp = Encoding.ASCII.GetString(bytes);         //Convert to string to be used
+                    worker.ReportProgress(100, temp);               //Send our value to the report progress event to update 
+                    //System.Diagnostics.Debug.WriteLine(temp);     //Use for testing received message
                 }
             }
             catch (SocketException ef)
@@ -113,10 +109,18 @@ namespace meadowSolarGUI
             finally
             {
                 listener.Close();
-
             }
         }
 
+        private void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            UpdateUI(e.UserState.ToString());   //Receives the UDP packet from do work event
+        }
+
+        /// <summary>
+        /// Event that receives the packet to be parsed and 
+        /// where we update the UI with the parsed values. 
+        /// </summary>
         private void UpdateUI(string text)
         {
             checkSumCalculated = 0; //Reset the calculated checksum otherwise it will keep addin
@@ -188,6 +192,10 @@ namespace meadowSolarGUI
             }
         }
 
+        /// <summary>
+        /// Method to utalize the solarcalc class to calculate the solar values
+        /// and display them in the UI.
+        /// </summary>
         private void displaySolarData(string text)
         {
             //Display data for solar
@@ -199,29 +207,10 @@ namespace meadowSolarGUI
             text_ledCurrent2.Text = solarcalc.LEDCurrent(solarcalc.analogVoltage[1], solarcalc.analogVoltage[3]);
         }
 
-        private void butt_OpenClose_Click(object sender, RoutedEventArgs e)
-        {
-            if (!bPortOpen)
-            {
-                worker.RunWorkerAsync();                    //Start our background worker to start listening for UDP
-                butt_OpenClose.Content = "Close";           //Rename the content in the button to close because it is open now
-                bPortOpen = true;
-                _backgroundworker = true;
-            }
-            else
-            {
-                worker.CancelAsync();
-                butt_OpenClose.Content = "Open";            //Change button content to open now that its closed
-                bPortOpen = false;
-                _backgroundworker = false;
-            }
-        }
-
-        private void butt_Clear_Click(object sender, RoutedEventArgs e)
-        {
-            text_packetReceived.Text = "###0000000000000000000000000000000000";
-        }
-
+        /// <summary>
+        /// Here we handle the sending of a packet to the meadow
+        /// to turn on or off LED's.
+        /// </summary>
         private void butt_Send_Click(object sender, RoutedEventArgs e)
         {
             sendPacket();
@@ -254,9 +243,40 @@ namespace meadowSolarGUI
             }
         }
 
+        /// <summary>
+        /// Button methods; most important is open/close that allows us to start and
+        /// stop listening for a UDP message. (start/stop backgroundworker).
+        /// Clear clears the packet received window.
+        /// The two bit button correspond to LED's and will send a packet 
+        /// to turn on a LED when pressed. 
+        /// IP and PORT handlers for recording the inputed address. 
+        /// </summary>
+        private void butt_OpenClose_Click(object sender, RoutedEventArgs e)
+        {
+            if (!bPortOpen)
+            {
+                worker.RunWorkerAsync();                    //Start our background worker to start listening for UDP
+                butt_OpenClose.Content = "Close";           //Rename the content in the button to close because it is open now
+                bPortOpen = true;
+                _backgroundworker = true;
+            }
+            else
+            {
+                worker.CancelAsync();
+                butt_OpenClose.Content = "Open";            //Change button content to open now that its closed
+                bPortOpen = false;
+                _backgroundworker = false;
+            }
+        }
+
+        private void butt_Clear_Click(object sender, RoutedEventArgs e)
+        {
+            text_packetReceived.Text = "###0000000000000000000000000000000000";
+        }
+
         private void buttonClicked(int i)
         {
-            Button[] butt_bit = new Button[] { butt_bit0, butt_bit1, butt_bit2, butt_bit3 };
+            Button[] butt_bit = new Button[] { butt_bit0, butt_bit1 };
             if (butt_bit[i].Content.ToString() == "0")
             {
                 butt_bit[i].Content = "1";
@@ -269,10 +289,12 @@ namespace meadowSolarGUI
             }
             sendPacket();
         }
+
         private void butt_bit0_Click(object sender, RoutedEventArgs e)
         {
             buttonClicked(0);
         }
+
         private void butt_bit1_Click(object sender, RoutedEventArgs e)
         {
             buttonClicked(1);
@@ -289,6 +311,9 @@ namespace meadowSolarGUI
         }
     }
 
+    /// <summary>
+    /// Class for parsing and returning values of a string. 
+    /// </summary>
     public class parseSubString
     {
         private int subStringLocation { get; set; }
