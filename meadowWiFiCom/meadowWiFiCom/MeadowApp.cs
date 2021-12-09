@@ -346,15 +346,17 @@ namespace meadowWiFiCom
                         {
                             sendBytes = Encoding.ASCII.GetBytes(outPacket); //Encode in ASCII to send UDP
 
-                            if (sendBytes.Length > 38)
-                            {
-                                udpclient.Send(sendBytes, sendBytes.Length);           //Send the bytes to the connected UDP server
-                                graphics.Clear(true);
-                                graphics.DrawText(5, 70, "Sending Stuff!");
-                                graphics.DrawText(5, 82, SERVER_IP);
-                                graphics.DrawText(5, 94, TOPORT.ToString());
-                                graphics.Show();
-                            }
+                            udpclient.Send(sendBytes, sendBytes.Length);           //Send the bytes to the connected UDP server
+                            graphics.Clear(true);
+                            graphics.DrawText(5, 70, "Sending Stuff!");
+                            graphics.Show();
+                            //if (sendBytes.Length > 38)
+                            //{
+                            //    udpclient.Send(sendBytes, sendBytes.Length);           //Send the bytes to the connected UDP server
+                            //    graphics.Clear(true);
+                            //    graphics.DrawText(5, 70, "Sending Stuff!");
+                            //    graphics.Show();
+                            //}
                             Thread.Sleep(packetTime);
                             TXstate = 0; //Reset to state 0
                             break;
