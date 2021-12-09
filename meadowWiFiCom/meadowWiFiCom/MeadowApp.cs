@@ -36,12 +36,12 @@ namespace meadowWiFiCom
         private bool initComplete = false;
 
         //WiFi Information
-        private static string SSID = "TELUS0108";
-        private static string PASSWORD = "kz9s7yhs3v";
+        private static string SSID = "Bakery204";
+        private static string PASSWORD = "Electronics@204CamosunCollege";
 
         //UDP Client Information
         private const int PORT_NO = 2001;
-        private const string SERVER_IP = "192.168.1.67";
+        private const string SERVER_IP = "10.51.241.215";
 
         /**********************Packet Variables*********************/
         string milliVolts00, milliVolts01, milliVolts02, milliVolts03, milliVolts04, milliVolts05;
@@ -341,14 +341,18 @@ namespace meadowWiFiCom
                     case 4:
                         {
                             sendBytes = Encoding.ASCII.GetBytes(outPacket); //Encode in ASCII to send UDP
-                
-                            if (sendBytes.Length > 38)
-                            {
-                                udpclient.Send(sendBytes, sendBytes.Length);           //Send the bytes to the connected UDP server
-                                graphics.Clear(true);
-                                graphics.DrawText(5, 70, "Sending Stuff!");
-                                graphics.Show();
-                            }
+
+                            udpclient.Send(sendBytes, sendBytes.Length);           //Send the bytes to the connected UDP server
+                            graphics.Clear(true);
+                            graphics.DrawText(5, 70, "Sending Stuff!");
+                            graphics.Show();
+                            //if (sendBytes.Length > 38)
+                            //{
+                            //    udpclient.Send(sendBytes, sendBytes.Length);           //Send the bytes to the connected UDP server
+                            //    graphics.Clear(true);
+                            //    graphics.DrawText(5, 70, "Sending Stuff!");
+                            //    graphics.Show();
+                            //}
                             Thread.Sleep(packetTime);
                             TXstate = 0; //Reset to state 0
                             break;
