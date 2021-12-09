@@ -88,7 +88,7 @@ namespace meadowSolarGUI
             //Run background tasks within this; this is where we handle UDP receiving
             UdpClient listener = new UdpClient(PORT);
             IPEndPoint groupEP = new IPEndPoint(IP, PORTipep);
-            
+
             try
             {
                 while (_backgroundworker)
@@ -266,4 +266,3 @@ namespace meadowSolarGUI
         }
     }
 }
-
