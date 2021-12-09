@@ -36,12 +36,15 @@ namespace meadowWiFiCom
         private bool initComplete = false;
 
         //WiFi Information
-        private static string SSID = "TELUS0108";
-        private static string PASSWORD = "kz9s7yhs3v";
+        private static string SSID = "Bakery204";
+        private static string PASSWORD = "Electronics@204CamosunCollege";
 
-        //UDP Client Information
+        //Meadow UDPClient on this port 
         private const int PORT_NO = 2001;
-        private const string SERVER_IP = "192.168.1.67";
+
+        //UDP Server Information
+        private const int TOPORT = 2002;
+        private const string SERVER_IP = "172.30.32.1";
 
         /**********************Packet Variables*********************/
         string milliVolts00, milliVolts01, milliVolts02, milliVolts03, milliVolts04, milliVolts05;
@@ -174,8 +177,9 @@ namespace meadowWiFiCom
             try
             {
                 //Connect to our WPF server
-                udpclient.Connect(SERVER_IP, 2002);
+                udpclient.Connect(SERVER_IP, TOPORT);
                 //Send a message that we have connected
+                Thread.Sleep(100);
                 Byte[] sendBytes = Encoding.ASCII.GetBytes("Meadow has connected!");
                 udpclient.Send(sendBytes, sendBytes.Length);
             }
@@ -341,12 +345,14 @@ namespace meadowWiFiCom
                     case 4:
                         {
                             sendBytes = Encoding.ASCII.GetBytes(outPacket); //Encode in ASCII to send UDP
-                
+
                             if (sendBytes.Length > 38)
                             {
                                 udpclient.Send(sendBytes, sendBytes.Length);           //Send the bytes to the connected UDP server
                                 graphics.Clear(true);
                                 graphics.DrawText(5, 70, "Sending Stuff!");
+                                graphics.DrawText(5, 82, SERVER_IP);
+                                graphics.DrawText(5, 94, TOPORT.ToString());
                                 graphics.Show();
                             }
                             Thread.Sleep(packetTime);
